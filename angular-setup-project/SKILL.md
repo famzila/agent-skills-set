@@ -143,6 +143,13 @@ The `angular-linters` skill will:
 
 **Critical**: Each configuration step in `angular-linters` must pass linting before proceeding to the next step.
 
+### Phase 3: Third-Party Integration Transition
+
+After the foundational project and the quality layer (`angular-linters`) are completely set up and validated, transition to third-party integrations:
+1. Inform the user that the base Angular project setup is complete and production-ready.
+2. Explicitly ask the user: *"Would you like to integrate any third-party libraries (e.g., TailwindCSS, Angular Material, Spartan UI, NgRx, Firebase)? If so, we will gracefully invoke the `angular-third-party-integration` skill to safely install them one by one. Please provide the list of libraries and their official installation documentation URLs."*
+3. Once the user provides the list, invoke the **`angular-third-party-integration`** skill to handle the integrations.
+
 ## Resources
 
 - **scripts/scaffold_structure.sh**: Deterministic folder hierarchy generator.
