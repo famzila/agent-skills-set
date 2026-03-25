@@ -1,5 +1,3 @@
-/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
-/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "compileOnSave": false,
   "compilerOptions": {
@@ -17,7 +15,8 @@
     "paths": {
       "@core/*": ["./src/app/core/*"],
       "@shared/*": ["./src/app/shared/*"],
-      "@features/*": ["./src/app/features/*"]
+      "@features/*": ["./src/app/features/*"],
+      "@spartan-ng/helm/icon": ["./libs/ui/icon/src/index.ts"]
     }
   },
   "angularCompilerOptions": {
