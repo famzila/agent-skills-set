@@ -1,0 +1,182 @@
+# Spartan UI
+
+**Version:** 0.0.1-alpha.656 (@spartan-ng/cli, @spartan-ng/brain)
+**Source:** https://www.spartan.ng/documentation/installation, https://www.spartan.ng/components/icon
+**Generated:** 2026-03-25
+
+## Overview
+
+Spartan UI is a two-layer Angular component library: `@spartan-ng/brain` provides accessible primitives (installed from npm), while `helm` styles are copied into your codebase for full customization. Built on top of Angular CDK and Tailwind CSS v4.
+
+## Installation & Setup
+
+### Prerequisites
+
+- Tailwind CSS v4 must be installed first. Follow: https://tailwindcss.com/docs/installation/framework-guides/angular
+
+### Quick Start (CLI)
+
+```bash
+npm install -D @spartan-ng/cli
+ng g @spartan-ng/cli:init
+ng g @spartan-ng/cli:ui
+```
+
+### Manual Setup
+
+```bash
+npm install @spartan-ng/brain @angular/cdk
+```
+
+### Configure Tailwind CSS v4
+
+Add to `src/styles.css`:
+
+```css
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "@spartan-ng/brain/hlm-tailwind-preset.css";
+```
+
+The preset already includes `tw-animate-css` and `@angular/cdk/overlay-prebuilt.css`.
+
+### Theme Variables
+
+**Option A (Recommended):** Generate with CLI:
+```bash
+ng g @spartan-ng/cli:ui-theme
+```
+
+**Option B (Manual):** Add CSS variables to `styles.css`:
+
+```css
+:root {
+  color-scheme: light;
+  --font-sans: 'Geist Sans', sans-serif;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.985 0 0);
+  --sidebar-primary-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+```
+
+## Core Concepts
+
+- **Brain**: Accessible primitives installed via npm (`@spartan-ng/brain`).
+- **Helm**: Style directives copied into your codebase for customization.
+- **CDK Dependency**: Uses `@angular/cdk` for overlays and accessibility.
+- **Tailwind CSS v4**: Required for styling; v3 has limited support.
+
+## Icon Component
+
+### Installation
+
+```bash
+ng g @spartan-ng/cli:ui icon
+```
+
+This installs `@ng-icons/core` and `@ng-icons/lucide`. Default icon set is Lucide.
+
+### Usage
+
+```typescript
+import { HlmIcon } from '@spartan-ng/helm/icon';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideCheck } from '@ng-icons/lucide';
+```
+
+```html
+<ng-icon hlm size="sm" name="lucideCheck" />
+```
+
+### Helm API - HlmIcon
+
+Selector: `ng-icon[hlmIcon], ng-icon[hlm]`
+
+| Prop | Type    | Default          |
+|------|---------|------------------|
+| size | IconSize | this._config.size |
+
+Sizes: `xs`, `sm`, `base`, `lg`, `xl`, `none`.
+
+Responsive sizing uses font-size utilities (e.g., `text-lg`).
+
+## Common Usage Patterns
+
+### Adding Components
+
+```bash
+ng g @spartan-ng/cli:ui button
+ng g @spartan-ng/cli:ui icon
+ng g @spartan-ng/cli:ui dialog
+```
+
+Each generates brain + helm code + dependencies.
+
+## Error Handling
+
+- If Tailwind CSS is not installed, spartan styles will not render.
+- If `@angular/cdk` is missing, overlay-based components (dialog, popover, etc.) will fail.
+
+## Best Practices
+
+- Use Tailwind CSS v4 (v3 has limited, unguaranteed support).
+- Use the CLI for component generation -- it handles dependencies automatically.
+- Configure Tailwind IntelliSense for `hlm`, `cva`, and `classes` functions.
+- Install `prettier-plugin-tailwindcss` with `tailwindFunctions: ["hlm", "cva", "classes"]`.

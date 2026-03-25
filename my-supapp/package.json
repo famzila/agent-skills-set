@@ -17,10 +17,20 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.ts": ["eslint --fix"],
-    "*.html": ["eslint --fix", "prettier --write"],
-    "*.css": ["stylelint --fix", "prettier --write"],
-    "*.{json,md}": ["prettier --write"]
+    "*.ts": [
+      "eslint --fix"
+    ],
+    "*.html": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.css": [
+      "stylelint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "prettier": {
     "printWidth": 100,
@@ -45,8 +55,11 @@
     "@angular/platform-server": "^21.0.0",
     "@angular/router": "^21.0.0",
     "@angular/ssr": "^21.0.0",
+    "@tailwindcss/postcss": "^4.2.2",
     "express": "^5.1.0",
+    "postcss": "^8.5.8",
     "rxjs": "~7.8.0",
+    "tailwindcss": "^4.2.2",
     "tslib": "^2.3.0"
   },
   "devDependencies": {

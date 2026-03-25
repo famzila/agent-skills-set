@@ -1,0 +1,136 @@
+# Prism.js
+
+**Version:** 1.30.0
+**Source:** https://prismjs.com/
+**Generated:** 2026-03-25
+
+## Overview
+
+Prism.js is a lightweight, extensible syntax highlighter. It works with `<code>` elements inside `<pre>` blocks using `language-xxxx` CSS classes. Supports 297 languages, multiple themes, and a rich plugin ecosystem.
+
+## Installation & Setup
+
+### Install via npm
+
+```bash
+npm install prismjs
+npm install -D @types/prismjs
+```
+
+### Angular Integration
+
+Add Prism CSS theme to `angular.json` styles:
+
+```json
+"styles": [
+  "node_modules/prismjs/themes/prism-tomorrow.css",
+  "src/styles.css"
+]
+```
+
+For additional language support, import them in your component:
+
+```typescript
+import Prism from 'prismjs';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-json';
+import 'prismjs/components/prism-bash';
+```
+
+## Core Concepts
+
+- Uses `<pre><code class="language-xxx">` markup (HTML5 standard).
+- Language class is inherited from parent elements.
+- Core includes: markup, css, clike, javascript.
+- Additional languages loaded as separate modules.
+- `language-none` to opt out of highlighting.
+
+## API Reference
+
+### Highlight All (Auto)
+
+Prism automatically highlights all `<code>` elements on `DOMContentLoaded`.
+
+### Manual Highlighting
+
+```typescript
+import Prism from 'prismjs';
+
+Prism.highlightAll();
+
+Prism.highlightElement(element);
+
+const html = Prism.highlight(code, Prism.languages.typescript, 'typescript');
+```
+
+### Disable Auto-Highlighting
+
+```typescript
+import Prism from 'prismjs';
+Prism.manual = true;
+```
+
+## Common Usage Patterns
+
+### Angular Component (Standalone Highlighter)
+
+```typescript
+import { Component, afterNextRender, ElementRef, viewChild } from '@angular/core';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-typescript';
+
+@Component({
+  selector: 'app-code-block',
+  template: `
+    <pre #codeBlock><code class="language-typescript">{{ code }}</code></pre>
+  `,
+})
+export class CodeBlockComponent {
+  code = `const greeting: string = 'Hello, Angular!';`;
+  private codeBlock = viewChild<ElementRef>('codeBlock');
+
+  constructor() {
+    afterNextRender(() => {
+      Prism.highlightAll();
+    });
+  }
+}
+```
+
+### SSR Consideration
+
+Prism uses `document` APIs. In SSR contexts, guard with:
+
+```typescript
+import { isPlatformBrowser, PLATFORM_ID } from '@angular/common';
+import { inject, afterNextRender } from '@angular/core';
+
+constructor() {
+  afterNextRender(() => {
+    Prism.highlightAll();
+  });
+}
+```
+
+`afterNextRender` only runs in browser, which is the safest approach.
+
+## Available Themes
+
+- `prism.css` (default light)
+- `prism-dark.css`
+- `prism-funky.css`
+- `prism-okaidia.css`
+- `prism-tomorrow.css` (recommended for dark)
+- `prism-twilight.css`
+- `prism-coy.css`
+- `prism-solarizedlight.css`
+
+## Best Practices
+
+- Use `afterNextRender` for highlighting in Angular (SSR-safe).
+- Import only the languages you need to keep bundle size small.
+- Use `prism-tomorrow.css` for dark themes.
+- For dynamic content, call `Prism.highlightElement(el)` after DOM updates.
+- Do NOT use `loadLanguages()` with bundlers -- import modules directly.

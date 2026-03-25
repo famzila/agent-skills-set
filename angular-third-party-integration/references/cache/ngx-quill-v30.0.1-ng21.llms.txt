@@ -1,0 +1,171 @@
+# ngx-quill
+
+**Version:** 30.0.1 (ngx-quill), 2.0.3 (quill)
+**Source:** https://github.com/KillerCodeMonkey/ngx-quill
+**Generated:** 2026-03-25
+
+## Overview
+
+ngx-quill is an Angular module wrapping the Quill Rich Text Editor (v2). It provides `<quill-editor>` and `<quill-view>` components with template-driven and reactive form support.
+
+## Angular Compatibility
+
+| Angular | ngx-quill | Supported Until |
+|---------|-----------|-----------------|
+| v21     | >= 29.x   | May 2027        |
+| v20     | 28.x      | Nov 2026        |
+
+## Installation & Setup
+
+```bash
+npm install ngx-quill quill
+```
+
+Peer dependencies: `@angular/core`, `@angular/common`, `@angular/forms`, `@angular/platform-browser`, `quill ^2.0.0`, `rxjs`.
+
+### Include Quill Theme CSS
+
+Add to `angular.json` styles array:
+
+```json
+"styles": [
+  "node_modules/quill/dist/quill.snow.css",
+  "src/styles.css"
+]
+```
+
+Or import in `styles.css`:
+
+```css
+@import 'quill/dist/quill.snow.css';
+```
+
+### Standalone Configuration (Angular 21+)
+
+```typescript
+import { provideQuillConfig } from 'ngx-quill/config';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideQuillConfig({
+      modules: {
+        syntax: true,
+        toolbar: [
+          ['bold', 'italic', 'underline', 'strike'],
+          ['blockquote', 'code-block'],
+          [{ header: 1 }, { header: 2 }],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ color: [] }, { background: [] }],
+          ['link', 'image', 'video'],
+          ['clean'],
+        ],
+      },
+    }),
+  ],
+};
+```
+
+### Syntax Highlighting with Prism.js
+
+Follow Quill's Syntax Highlight Module Guide: https://quilljs.com/docs/modules/syntax/
+
+```typescript
+import { provideQuillConfig } from 'ngx-quill/config';
+
+provideQuillConfig({
+  modules: {
+    syntax: true,
+  },
+})
+```
+
+Requires `prismjs` to be loaded (add CSS theme + JS to `angular.json`).
+
+## Core Concepts
+
+- **QuillEditorComponent** (`<quill-editor>`): Full editor with toolbar, forms integration.
+- **QuillViewComponent** (`<quill-view>`): Read-only renderer using QuillJS.
+- **QuillViewHTMLComponent** (`<quill-view-html>`): HTML-based read-only view (deprecated with Quill v2).
+
+## API Reference
+
+### QuillEditorComponent Inputs
+
+| Input | Type | Default | Description |
+|-------|------|---------|-------------|
+| ngModel | any | - | Two-way binding for template-driven forms |
+| formControl | FormControl | - | Reactive form binding |
+| format | 'html' \| 'object' \| 'text' \| 'json' | 'html' | Model value format |
+| theme | 'snow' \| 'bubble' | 'snow' | Quill theme |
+| modules | object | default toolbar | Quill modules config |
+| readOnly | boolean | false | Disable editing |
+| placeholder | string | 'Insert text here ...' | Placeholder text |
+| maxLength | number | - | Validation: max length |
+| minLength | number | - | Validation: min length |
+| required | boolean | false | Required validation |
+| sanitize | boolean | false | DomSanitizer for HTML format |
+| bounds | string \| HTMLElement | document.body | Editor boundary |
+| debounceTime | number | - | Debounce model changes (ms) |
+| classes | string | - | CSS classes on editor element |
+
+### QuillEditorComponent Outputs
+
+| Output | Payload |
+|--------|---------|
+| onEditorCreated | Quill instance |
+| onContentChanged | { editor, html, text, content, delta, oldDelta, source } |
+| onSelectionChanged | { editor, range, oldRange, source } |
+| onEditorChanged | text-change or selection-change event |
+| onFocus | { editor, source } |
+| onBlur | { editor, source } |
+
+## Common Usage Patterns
+
+### Basic Editor
+
+```html
+<quill-editor
+  [(ngModel)]="editorContent"
+  [modules]="quillModules"
+  theme="snow"
+  placeholder="Write something..."
+></quill-editor>
+```
+
+### With Reactive Forms
+
+```typescript
+editorControl = new FormControl('');
+```
+
+```html
+<quill-editor [formControl]="editorControl"></quill-editor>
+```
+
+### Custom Toolbar via Projection
+
+```html
+<quill-editor>
+  <div quill-editor-toolbar>
+    <span class="ql-formats">
+      <button class="ql-bold"></button>
+      <button class="ql-italic"></button>
+    </span>
+  </div>
+</quill-editor>
+```
+
+## Known Issues
+
+- IME/special characters can add unwanted newlines.
+- formControl/model change triggers on first render.
+- HTML format has issues with Quill v2 (`getSemanticHtml()`).
+- **Recommendation**: Use Delta format (object/json) instead of HTML for reliable content storage.
+
+## Best Practices
+
+- Use `provideQuillConfig()` for standalone apps (not `QuillModule.forRoot()`).
+- Prefer Delta format over HTML for storage and interop.
+- Add `debounceTime` for large documents to improve performance.
+- Use `onlyFormatEventData: true` with non-HTML formats for better performance.
+- For SSR, use `isPlatformBrowser` guard or `beforeRender` for lazy CSS loading.

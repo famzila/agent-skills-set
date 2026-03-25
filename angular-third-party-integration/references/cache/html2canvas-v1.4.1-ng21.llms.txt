@@ -1,0 +1,166 @@
+# html2canvas
+
+**Version:** 1.4.1
+**Source:** https://github.com/niklasvh/html2canvas
+**Generated:** 2026-03-25
+
+## Overview
+
+html2canvas is a JavaScript library that renders DOM elements to a `<canvas>` element, effectively taking "screenshots" of web page content directly in the browser. It does not use the actual display but reads DOM properties and builds a canvas representation.
+
+## Installation & Setup
+
+```bash
+npm install html2canvas
+```
+
+No Angular-specific setup required. It's a pure function-based library.
+
+## Core Concepts
+
+- Takes a DOM element as input, returns a Promise resolving to a `<canvas>` element.
+- Reads DOM properties (computed styles, layout, images) -- does NOT capture pixels from the screen.
+- Works entirely client-side; does NOT require a server.
+- Cross-origin images require CORS or a proxy.
+
+## API Reference
+
+### Main Function
+
+```typescript
+import html2canvas from 'html2canvas';
+
+html2canvas(element: HTMLElement, options?: Options): Promise<HTMLCanvasElement>
+```
+
+### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| width | number | element width | Canvas width |
+| height | number | element height | Canvas height |
+| scale | number | window.devicePixelRatio | Rendering scale |
+| backgroundColor | string \| null | '#ffffff' | Background color (null = transparent) |
+| allowTaint | boolean | false | Allow cross-origin images to taint canvas |
+| useCORS | boolean | false | Use CORS for cross-origin images |
+| logging | boolean | true | Enable console logging |
+| ignoreElements | (el) => boolean | - | Filter out elements |
+| onclone | (doc) => void | - | Modify cloned DOM before render |
+| proxy | string | null | Proxy URL for cross-origin images |
+| imageTimeout | number | 15000 | Image load timeout (ms) |
+| foreignObjectRendering | boolean | false | Use SVG foreignObject |
+| removeContainer | boolean | true | Clean up temporary DOM |
+
+### Exclude Elements
+
+Use `data-html2canvas-ignore` attribute:
+
+```html
+<div data-html2canvas-ignore="true">Hidden from capture</div>
+```
+
+Or use `ignoreElements` callback:
+
+```typescript
+html2canvas(element, {
+  ignoreElements: (el) => el.classList.contains('no-screenshot'),
+});
+```
+
+## Common Usage Patterns
+
+### Basic Screenshot
+
+```typescript
+import html2canvas from 'html2canvas';
+
+async captureElement(element: HTMLElement): Promise<void> {
+  const canvas = await html2canvas(element);
+  document.body.appendChild(canvas);
+}
+```
+
+### Download as Image
+
+```typescript
+async downloadScreenshot(element: HTMLElement): Promise<void> {
+  const canvas = await html2canvas(element, { scale: 2 });
+  const link = document.createElement('a');
+  link.download = 'screenshot.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+```
+
+### Modify Cloned DOM Before Capture
+
+```typescript
+html2canvas(element, {
+  onclone: (clonedDoc) => {
+    clonedDoc.querySelectorAll('.edit-button').forEach(el => {
+      (el as HTMLElement).style.display = 'none';
+    });
+  },
+  scale: 2,
+});
+```
+
+### Angular Component Integration
+
+```typescript
+import { Component, viewChild, ElementRef, afterNextRender } from '@angular/core';
+import html2canvas from 'html2canvas';
+
+@Component({
+  template: `
+    <div #captureArea>
+      <p>Content to capture</p>
+    </div>
+    <button (click)="capture()">Capture</button>
+    <div #result></div>
+  `,
+})
+export class CaptureComponent {
+  private captureArea = viewChild<ElementRef>('captureArea');
+  private result = viewChild<ElementRef>('result');
+
+  async capture(): Promise<void> {
+    const canvas = await html2canvas(this.captureArea()!.nativeElement, { scale: 2 });
+    this.result()!.nativeElement.appendChild(canvas);
+  }
+}
+```
+
+## SSR Considerations
+
+html2canvas requires `document` and `window` objects. In Angular SSR:
+
+```typescript
+import { isPlatformBrowser, PLATFORM_ID } from '@angular/common';
+import { inject } from '@angular/core';
+
+private platformId = inject(PLATFORM_ID);
+
+async capture(element: HTMLElement): Promise<void> {
+  if (!isPlatformBrowser(this.platformId)) return;
+  const html2canvas = (await import('html2canvas')).default;
+  const canvas = await html2canvas(element);
+  // ...
+}
+```
+
+Use dynamic import to avoid SSR bundling issues.
+
+## Error Handling
+
+- Cross-origin images: Enable `useCORS: true` or use a proxy.
+- Large DOMs: May be slow -- consider limiting scope to specific elements.
+- CSS limitations: Some CSS properties (e.g., `backdrop-filter`, `mix-blend-mode`) may not render.
+
+## Best Practices
+
+- Always set `scale: 2` for high-DPI screenshots.
+- Use `useCORS: true` when capturing elements with external images.
+- Guard with `isPlatformBrowser` for SSR apps.
+- Use dynamic `import('html2canvas')` to avoid SSR bundling.
+- Use `ignoreElements` or `data-html2canvas-ignore` to exclude interactive controls.

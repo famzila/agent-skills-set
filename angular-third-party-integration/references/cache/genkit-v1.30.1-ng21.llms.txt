@@ -1,0 +1,158 @@
+# Genkit (Angular Integration)
+
+**Version:** 1.30.1 (genkit, @genkit-ai/google-genai, @genkit-ai/express)
+**Source:** https://genkit.dev/docs/js/frameworks/angular/
+**Generated:** 2026-03-25
+
+## Overview
+
+Genkit is a Google AI framework for building AI-powered features. In Angular SSR apps, Genkit flows run server-side via Express routes and are consumed from the frontend using the Genkit client library. Supports both non-streaming and streaming responses.
+
+## Installation & Setup
+
+### Install Dependencies
+
+```bash
+npm install genkit @genkit-ai/google-genai @genkit-ai/express
+npm install -g genkit-cli
+npm install --save-dev tsx
+```
+
+### Prerequisites
+
+- Angular app with SSR and server routing enabled (`@angular/ssr --server-routing`).
+- A Google AI API key (Gemini API via https://aistudio.google.com/app/apikey).
+
+## Core Concepts
+
+- **Flows**: Server-side functions defined with `ai.defineFlow()` that encapsulate AI logic.
+- **Express Handler**: `expressHandler()` wraps flows as Express route handlers.
+- **Client Library**: `genkit/beta/client` provides `runFlow` and `streamFlow` for frontend consumption.
+- **Streaming**: `ai.generateStream()` + `sendChunk()` for real-time token streaming.
+
+## API Reference
+
+### Define a Flow (Server-Side)
+
+```typescript
+// src/genkit/menuSuggestionFlow.ts
+import { googleAI } from '@genkit-ai/google-genai';
+import { genkit, z } from 'genkit';
+
+const ai = genkit({
+  plugins: [googleAI()],
+});
+
+export const menuSuggestionFlow = ai.defineFlow(
+  {
+    name: 'menuSuggestionFlow',
+    inputSchema: z.object({ theme: z.string() }),
+    outputSchema: z.object({ menuItem: z.string() }),
+    streamSchema: z.string(),
+  },
+  async ({ theme }, { sendChunk }) => {
+    const { stream, response } = ai.generateStream({
+      model: googleAI.model('gemini-2.5-flash'),
+      prompt: `Invent a menu item for a ${theme} themed restaurant.`,
+    });
+    for await (const chunk of stream) {
+      sendChunk(chunk.text);
+    }
+    const { text } = await response;
+    return { menuItem: text };
+  },
+);
+```
+
+### Add Server Routes
+
+In `src/server.ts`, add:
+
+```typescript
+import { expressHandler } from '@genkit-ai/express';
+import { menuSuggestionFlow } from './genkit/menuSuggestionFlow';
+
+// After app variable initialization:
+app.use(express.json());
+app.post('/api/menuSuggestion', expressHandler(menuSuggestionFlow));
+```
+
+### Frontend - Non-Streaming
+
+```typescript
+import { Component, resource, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { runFlow } from 'genkit/beta/client';
+
+@Component({
+  selector: 'app-root',
+  imports: [FormsModule],
+  template: `...`,
+})
+export class AppComponent {
+  menuInput = '';
+  theme = signal('');
+
+  menuResource = resource({
+    request: () => this.theme(),
+    loader: ({ request }) =>
+      runFlow({
+        url: 'http://localhost:4200/api/menuSuggestion',
+        input: { theme: request },
+      }),
+  });
+}
+```
+
+### Frontend - Streaming
+
+```typescript
+import { streamFlow } from 'genkit/beta/client';
+
+async streamMenuItem() {
+  const theme = this.menuInput;
+  if (!theme) return;
+  this.isStreaming.set(true);
+  this.streamedText.set('');
+  try {
+    const result = streamFlow({
+      url: 'http://localhost:4200/api/menuSuggestion',
+      input: { theme },
+    });
+    for await (const chunk of result.stream) {
+      this.streamedText.update((prev) => prev + chunk);
+    }
+    const finalOutput = await result.output;
+  } catch (error) {
+    console.error('Error streaming:', error);
+  } finally {
+    this.isStreaming.set(false);
+  }
+}
+```
+
+## Security
+
+**CRITICAL**: The API key must NEVER be exposed in browser bundles.
+
+- Set `GEMINI_API_KEY` as an environment variable on the server.
+- Genkit flows run server-side only (via Express routes in SSR).
+- The frontend calls the flow via HTTP POST to `/api/...`.
+
+```bash
+export GEMINI_API_KEY=<your API key>
+```
+
+## Error Handling
+
+- Wrap `runFlow`/`streamFlow` calls in try/catch.
+- Server-side: Genkit provides built-in error types via `z` validation.
+- Check that `express.json()` middleware is applied before flow routes.
+
+## Best Practices
+
+- Keep flow definitions in a dedicated `src/genkit/` directory.
+- Use `z` (Zod) schemas for type-safe input/output validation.
+- Use streaming for long-running AI tasks to improve UX.
+- For production, use environment-specific API key management (not hardcoded).
+- Test flows independently with `genkit start -- npx tsx --watch src/genkit/menuSuggestionFlow.ts`.

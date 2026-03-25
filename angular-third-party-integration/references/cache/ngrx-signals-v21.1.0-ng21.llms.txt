@@ -1,0 +1,203 @@
+# NgRx Signal Store
+
+**Version:** 21.1.0 (@ngrx/signals)
+**Source:** https://ngrx.io/guide/signals, https://ngrx.io/guide/signals/install, https://ngrx.io/guide/signals/signal-store, https://ngrx.io/guide/signals/signal-store/lifecycle-hooks
+**Generated:** 2026-03-25
+
+## Overview
+
+NgRx Signal Store (`@ngrx/signals`) is a standalone, lightweight state management library for Angular built on top of Angular Signals. It provides `signalStore`, `signalState`, and composable features (`withState`, `withComputed`, `withMethods`, `withHooks`) for reactive, type-safe state management.
+
+## Installation & Setup
+
+```bash
+npm install @ngrx/signals
+```
+
+No module imports required -- Signal Store is standalone and used as an injectable service.
+
+## Core Concepts
+
+- **`signalStore()`**: Factory function to create a store as an injectable Angular service.
+- **`withState()`**: Defines initial state slices; auto-generates signal accessors.
+- **`withComputed()`**: Derives computed signals from store state.
+- **`withMethods()`**: Defines methods for state updates and side effects (runs in injection context).
+- **`withHooks()`**: Lifecycle hooks (`onInit`, `onDestroy`) for the store.
+- **`withProps()`**: Groups injected dependencies for use across features.
+- **`patchState()`**: Immutably updates store state.
+
+## API Reference
+
+### Create a Store with State
+
+```typescript
+import { signalStore, withState } from '@ngrx/signals';
+
+type BooksState = {
+  books: Book[];
+  isLoading: boolean;
+  filter: { query: string; order: 'asc' | 'desc' };
+};
+
+const initialState: BooksState = {
+  books: [],
+  isLoading: false,
+  filter: { query: '', order: 'asc' },
+};
+
+export const BookSearchStore = signalStore(withState(initialState));
+```
+
+### Add Computed Signals
+
+```typescript
+import { computed } from '@angular/core';
+import { signalStore, withState, withComputed } from '@ngrx/signals';
+
+export const BookSearchStore = signalStore(
+  withState(initialState),
+  withComputed((state) => ({
+    filteredBooks: computed(() =>
+      state.books().filter((b) => b.title.includes(state.filter().query))
+    ),
+  }))
+);
+```
+
+### Add Methods
+
+```typescript
+import { inject } from '@angular/core';
+import { patchState, signalStore, withState, withMethods } from '@ngrx/signals';
+
+export const BookSearchStore = signalStore(
+  withState(initialState),
+  withMethods((store, booksService = inject(BooksService)) => ({
+    updateQuery(query: string): void {
+      patchState(store, (state) => ({
+        filter: { ...state.filter, query },
+      }));
+    },
+    async loadAll(): Promise<void> {
+      patchState(store, { isLoading: true });
+      const books = await booksService.getAll();
+      patchState(store, { books, isLoading: false });
+    },
+  }))
+);
+```
+
+### Lifecycle Hooks
+
+```typescript
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { interval } from 'rxjs';
+import { patchState, signalStore, withState, withMethods, withHooks } from '@ngrx/signals';
+
+export const CounterStore = signalStore(
+  withState({ count: 0 }),
+  withMethods((store) => ({
+    increment(): void {
+      patchState(store, (state) => ({ count: state.count + 1 }));
+    },
+  })),
+  withHooks({
+    onInit(store) {
+      interval(2_000)
+        .pipe(takeUntilDestroyed())
+        .subscribe(() => store.increment());
+    },
+    onDestroy(store) {
+      console.log('count on destroy', store.count());
+    },
+  })
+);
+```
+
+### Custom Store Features
+
+```typescript
+import { effect } from '@angular/core';
+import { getState, signalStoreFeature, withHooks } from '@ngrx/signals';
+
+export function withLogger(name: string) {
+  return signalStoreFeature(
+    withHooks({
+      onInit(store) {
+        effect(() => {
+          const state = getState(store);
+          console.log(`${name} state changed`, state);
+        });
+      },
+    })
+  );
+}
+```
+
+### Using withProps for Dependency Injection
+
+```typescript
+import { inject } from '@angular/core';
+import { signalStore, withProps, withState, withMethods, withHooks } from '@ngrx/signals';
+
+export const BooksStore = signalStore(
+  withState<BooksState>({ books: [], isLoading: false }),
+  withProps(() => ({
+    booksService: inject(BooksService),
+    logger: inject(Logger),
+  })),
+  withMethods(({ booksService, logger, ...store }) => ({
+    async loadBooks(): Promise<void> {
+      logger.debug('Loading books...');
+      patchState(store, { isLoading: true });
+      const books = await booksService.getAll();
+      patchState(store, { books, isLoading: false });
+    },
+  })),
+  withHooks({
+    onInit({ logger }) {
+      logger.debug('BooksStore initialized');
+    },
+  })
+);
+```
+
+## Common Usage Patterns
+
+### Providing in a Component
+
+```typescript
+@Component({
+  providers: [CounterStore],
+  template: `
+    <p>Count: {{ store.count() }}</p>
+    <button (click)="store.increment()">+</button>
+  `,
+})
+export class CounterComponent {
+  readonly store = inject(CounterStore);
+}
+```
+
+### Providing at Root Level
+
+```typescript
+export const GlobalStore = signalStore(
+  { providedIn: 'root' },
+  withState({ ... })
+);
+```
+
+## Error Handling
+
+- Type errors are caught at compile time via TypeScript generics.
+- `patchState` requires matching state shape.
+- Use `withHooks.onDestroy` for cleanup (subscriptions, intervals).
+
+## Best Practices
+
+- Use `patchState` for immutable state updates (never mutate directly).
+- Use `withComputed` for derived state instead of computing in templates.
+- Use `withHooks.onInit` with `takeUntilDestroyed()` for RxJS subscriptions.
+- Compose features with `signalStoreFeature` for reusable patterns.
+- Prefer component-level providers unless global state is needed.
