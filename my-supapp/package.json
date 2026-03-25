@@ -62,6 +62,7 @@
     "@spartan-ng/brain": "^0.0.1-alpha.656",
     "@tailwindcss/postcss": "^4.2.2",
     "express": "^5.1.0",
+    "html2canvas": "^1.4.1",
     "ngx-quill": "^30.0.1",
     "postcss": "^8.5.8",
     "prismjs": "^1.30.0",
