@@ -29,7 +29,7 @@ const { createTypeScriptImportResolver } = require("eslint-import-resolver-types
     'import-x/flat/typescript',
   ],
   plugins: {
-    // @ts-ignore -- known type incompatibility between import-x and ESLint Plugin types
+    // @ts-expect-error -- known type incompatibility between import-x and ESLint Plugin types
     "import-x": importX,
   },
   settings: {
@@ -61,7 +61,7 @@ const { createTypeScriptImportResolver } = require("eslint-import-resolver-types
 ```
 
 > [!IMPORTANT]
-> **`@ts-ignore` is required** when using `// @ts-check`. The `importX` object's `configs` property includes legacy configs with `parser: null`, which conflicts with ESLint's `Plugin` type (`string | undefined`). This is a known type mismatch in the library — safe to suppress.
+> **`@ts-expect-error` is required** when using `// @ts-check`. The `importX` object's `configs` property includes legacy configs with `parser: null`, which conflicts with ESLint's `Plugin` type (`string | undefined`). This is a known type mismatch in the library — safe to suppress. Use `@ts-expect-error` (not `@ts-ignore`) so TypeScript will error if the suppression becomes unnecessary in a future version.
 
 > [!NOTE]
 > **`import-x/flat/typescript`** enables TypeScript-specific import rules. Always include it alongside `import-x/flat/recommended` in Angular/TypeScript projects.
@@ -135,4 +135,4 @@ const unusedImports = require("eslint-plugin-unused-imports");
 - **Extends**: Use `extends: ['import-x/flat/recommended', 'import-x/flat/typescript']` string references with `defineConfig` (official pattern from [import-x docs](https://github.com/un-ts/eslint-plugin-import-x#using-defineconfig)).
 - **Resolution**: Always use `import-x/resolver-next` with `createTypeScriptImportResolver` so import-x can resolve Angular path aliases defined in `tsconfig.json`.
 - **Prettier**: These rules should appear before the Prettier finalizer in the `defineConfig` array to ensure Prettier has the final say on any formatting changes.
-- **Type Safety**: When using `// @ts-check`, add `// @ts-ignore` above the `'import-x': importX` plugin registration line.
+- **Type Safety**: When using `// @ts-check`, add `// @ts-expect-error -- known type incompatibility` above the `'import-x': importX` plugin registration line.

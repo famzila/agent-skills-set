@@ -11,9 +11,17 @@ This skill orchestrates the safe integration of third-party libraries into an ex
 
 **CRITICAL**: Before asking the user for the list of libraries to integrate, fetching any documentation, or modifying any configuration files, you **MUST** ensure the foundational setup is working perfectly.
 
+### Pre-Condition: Clean Working Directory (MANDATORY)
+
+Run `git status --porcelain`. If the output is **NOT empty**, **STOP**. Tell the user: _"Your working directory has uncommitted changes. Please commit or stash them before running this skill to protect your work from rollback operations."_
+
 ### Foundation Verification Process
 1. **Verify Angular Context**: Check for `angular.json` in the workspace. If it does not exist, tell the user they must be in an Angular project and abort.
-2. **Detect Environment**: Inspect `package.json` to determine the current **Angular version** and the **package manager** (npm, yarn, pnpm, bun) being used.
+2. **Read Project Manifest**: Read `PROJECT_MANIFEST.json` from the project root.
+   - Extract `packageManager`, `style`, `angularMajorVersion`, and all other fields.
+   - If `lintersConfigured` is not `true`, warn the user: _"The linting skill has not been run. Commands like `lint` and `format` may not exist. Run `angular-linters` first or proceed at your own risk."_
+   - If the manifest is missing, fall back to detecting from `package.json` and ask the user for missing values.
+3. **Detect Environment** (fallback): If no manifest, inspect `package.json` to determine the current **Angular version** and the **package manager** (npm, yarn, pnpm) being used.
 3. **Prompt the User**: Tell the user exactly this:
    > "Before we integrate any third-party libraries, please take a moment to verify that your foundational Angular setup is working perfectly. Run your start script (e.g., `[detected-pkg-manager] start`) and ensure the app compiles and loads without errors."
 4. **DO NOT PROCEED** to ask for libraries or fetch documentation until the user explicitly confirms the foundation is working.
@@ -37,10 +45,17 @@ If the requested library explicitly references a foundational peer dependency (e
 
 **CRITICAL**: This skill requires fetching exact URL content, not search results.
 
+### Bootstrap (First Run)
+
+1. If `references/cache/` does not exist within this skill's directory, create it.
+2. If `references/common-integrations-edge-cases.md` does not exist, create it from the template provided in the skill's `references/` directory.
+
 ### Fetching Process
 1. **Use your URL reading tools** to retrieve the EXACT URL provided by the user.
-2. **Check Cache:** First, check `references/cache/` within this skill's directory. If a `.llms.txt` file for the requested library and version already exists, use it immediately and skip the web fetching.
-   - If you need to generate a new file, save it into `references/cache/[library-name]-v[version].llms.txt` when you're done.
+2. **Check Cache:** First, check `references/cache/` within this skill's directory. If a `.llms.txt` file matching the library, library version, **AND** the project's Angular major version already exists, use it immediately and skip the web fetching.
+   - **Cache file naming:** `[library-name]-v[lib-version]-ng[angular-major].llms.txt` (e.g., `tailwindcss-v4.1.0-ng21.llms.txt`)
+   - When checking cache, match **all three parts** (library, lib version, Angular major). A file for `ng19` is NOT valid for an `ng21` project.
+   - If you need to generate a new file, save it with this naming convention into `references/cache/`.
 3. **Never substitute with web search** if the exact URL is available.
 
 ### Validation
@@ -91,7 +106,8 @@ For *each* library requested, generate an `llms.txt` file following this exact t
 ## 6. Output Format & Presentation
 
 ### File Naming
-Use kebab-case: `[library-name]-v[version].llms.txt`
+Use: `[library-name]-v[lib-version]-ng[angular-major].llms.txt`
+Examples: `tailwindcss-v4.1.0-ng21.llms.txt`, `angular-material-v19.2.0-ng19.llms.txt`
 Save them strictly to the `references/cache/` directory.
 
 ### File Structure Example
@@ -116,6 +132,21 @@ After generation:
 1. Present the complete generated (or cached) `.llms.txt` files to the user for review.
 2. Confirm the exact installation steps and files meet their needs.
 3. **Context Lock:** Once the user approves the `.llms.txt` files, use them as your primary context for the Execution Phase.
+
+## 6.5. Pre-Install Guard (MANDATORY)
+
+Before entering the sequential execution loop:
+
+1. Read `references/compatibility-matrix.md`.
+2. For each requested library:
+   a. Check if it has a row in the matrix.
+   b. If it has prerequisites not already installed in the project, prepend them to the install order.
+   c. If the project's Angular version (from manifest or detection) is below the minimum, **WARN** the user and ask for confirmation.
+3. Reorder the library list by dependency (prerequisites before dependents — topological sort).
+4. Present the resolved install order to the user for confirmation.
+5. Only then enter the Step 7 loop.
+
+---
 
 ## 7. The Sequential Playground Execution Protocol (CRITICAL)
 
@@ -156,7 +187,9 @@ If the generator provides a `--project`/`--app` or other flag, you MUST use it t
 
 If Tier 1 still triggers prompts (typical lines contain one of: `? Choose`, `Select`, `Pick`, `Use arrow keys`, `No matching choices`, or text input prompts like `? What ... should be used`), re-run the generator under a pseudo‑TTY and feed deterministic answers.
 
-On macOS/Linux, the most reliable built-in approach is `expect` (ships on macOS, common on Linux).
+On macOS/Linux, the most reliable built-in approach is `expect` (ships on macOS, common on Linux). First verify availability: `command -v expect`. If `expect` is not installed, skip Tier 2 and fall through to Tier 3.
+
+> **Windows:** `expect` is not available on Windows. Skip Tier 2 entirely and fall through to Tier 3 (user answers prompts in terminal). Alternatively, if WSL is available, run the generator inside WSL.
 
 **Default automation policy (deterministic):**
 - For **single-choice selects**: press Enter to accept the default selection.
@@ -229,7 +262,8 @@ Then the skill continues with build/lint/runtime verification.
 2. **If the build fails:**
    - Investigate the error (e.g., rigid paths, missing `externalDependencies` config for Angular bundle tree-shaking rules, TypeScript strictly typed interfaces).
    - Fix the broken configuration files directly.
-   - Run `[pkg-manager] run build` again until it passes with **Exit Code 0**. 
+   - Run `[pkg-manager] run build` again.
+   - **Maximum 3 retry attempts.** After the third consecutive build failure for the same library, **STOP** the loop. Inform the user: _"Build has failed 3 times for [library]. Rolling back this integration. Please review the error output and try manually."_ Execute the scoped rollback from Step 7E failure path.
    - DO NOT proceed to create Playground Injection widgets until a clean build establishes that the integration setup is foundationally sound.
 
 > **CRITICAL — Root Cause over Quick Fix:** When encountering any error or bug (build failures, typing errors, module resolution, etc.), DO NOT apply quick hacks. You **MUST** investigate and fix the root cause to ensure a clean solution before committing.
@@ -242,7 +276,7 @@ You cannot trust that a successful build means the library works in the browser.
 2. Start the Angular dev server (`[pkg-manager] start &`) in the background.
 
 ### Step 7D: Automated Subagent Verification (Option A)
-1. Use the **Browser Subagent** tool (`browser_subagent`) to navigate to `http://localhost:4200` (or otherwise configured active dev server port).
+1. Read the `serve` target in `angular.json` to detect a custom port. Default to `4200` only if no port is configured. Use whatever browser automation / MCP tool is available to navigate to `http://localhost:[detected-port]`.
 2. Instruct the subagent to interact with the playground injection and wait for the result to appear in the DOM.
 3. Wait for the subagent to confirm the library is functionally working at runtime.
 4. If Browser Subagent is not available ask the user to confirm that it works.
@@ -254,8 +288,11 @@ You cannot trust that a successful build means the library works in the browser.
   3. Run `[pkg-manager] run format` and `[pkg-manager] run lint`.
   4. Explicitly commit the working integration: `git add .` and `git commit -m "chore: integrate [library-name]"`.
 - **If Verification Fails:**
-  1. Immediately run `git reset --hard HEAD` and `git clean -fd` to wipe out the broken integration.
-  2. Stop the loop and notify the user: *"The integration for [library] failed at runtime. I have rolled back the project. Let's debug."*
+  1. Stop the Angular dev server.
+  2. Run `git diff --name-only HEAD` to list files changed during this integration step.
+  3. Revert **ONLY** those files: `git checkout -- <files>`.
+  4. Remove **ONLY** untracked files created during this integration step (do NOT use `git clean -fd` — it destroys cache files and unrelated work).
+  5. Stop the loop and notify the user: *"The integration for [library] failed at runtime. I have rolled back the affected files. Let's debug."*
 
 **REPEAT this loop for every requested library.**
 

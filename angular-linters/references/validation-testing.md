@@ -2,7 +2,11 @@
 
 Complete test strategy to confirm **all quality tools** are actively working. This step is **REQUIRED**.
 
+> **Package Manager Convention:** Throughout this file, `[pkg-manager]` refers to the package manager confirmed during project setup (pnpm, npm, or yarn). `[exec]` maps to `pnpm exec` / `yarn exec` / `npx`.
+
 ---
+
+> **Note:** If RxJS linting is disabled (Step 3.4 was skipped), omit the RxJS-related violations from `test-violations.component.ts` (the `rxjs` imports, `data$` subject, and nested subscribe in `onClick()`) and skip the "ESLint (RxJS-x)" row in the validation checklist below.
 
 ## 7.1: Create Test Files
 
@@ -75,15 +79,15 @@ Run each tool and confirm violations are detected:
 
 ```bash
 # ESLint — should detect TS + HTML violations
-pnpm run lint
+[pkg-manager] run lint
 # Expected: ~8-12 violations (import order, unused imports, accessibility, rxjs, selector, prettier)
 
 # Stylelint — should detect CSS violations
-pnpm run lint:styles
+[pkg-manager] run lint:styles
 # Expected: ~3-5 violations (missing generic font, spacing)
 
 # Prettier — should detect formatting violations
-pnpm run format
+[pkg-manager] run format
 # Expected: at least 2 files fail formatting check
 ```
 
@@ -96,19 +100,19 @@ pnpm run format
 
 ```bash
 # ESLint auto-fix — should fix import order, unused imports, formatting
-pnpm run lint:fix
+[pkg-manager] run lint:fix
 
 # Stylelint auto-fix — should fix CSS spacing
-pnpm run lint:styles:fix
+[pkg-manager] run lint:styles:fix
 
 # Prettier auto-fix — should fix remaining formatting
-pnpm run format:fix
+[pkg-manager] run format:fix
 ```
 
 After running all auto-fix commands, re-run detection to see what remains:
 
 ```bash
-pnpm run lint && pnpm run lint:styles && pnpm run format
+[pkg-manager] run lint && [pkg-manager] run lint:styles && [pkg-manager] run format
 ```
 
 ### Expected Remaining (manual fixes needed):
@@ -123,17 +127,20 @@ pnpm run lint && pnpm run lint:styles && pnpm run format
 
 ## 7.4: Commitlint Validation
 
-**Option A: Pipe validation (preferred — no git cleanup needed)**
+**Option A: Pipe validation (DEFAULT — preferred, no git cleanup needed)**
 
 ```bash
 # ❌ Should REJECT — not conventional commit format
-echo "added test stuff" | pnpm exec commitlint
+echo "added test stuff" | [pkg-manager] exec commitlint
 
 # ✅ Should ACCEPT — conventional commit format
-echo "test: add validation test files" | pnpm exec commitlint
+echo "test: add validation test files" | [pkg-manager] exec commitlint
 ```
 
 **Option B: Full integration test (tests Husky + lint-staged + commitlint together)**
+
+> [!IMPORTANT]
+> If Option B is used, the agent **MUST** immediately run `git reset --soft HEAD~1` after the test, regardless of success or failure. Leaving test commits in git history is not acceptable.
 
 ```bash
 # ❌ Should REJECT — triggers full Husky pipeline, commitlint rejects message
@@ -142,12 +149,12 @@ git add -A && git commit -m "added test stuff"
 # ✅ Should ACCEPT — Husky runs lint-staged, commitlint accepts message
 git add -A && git commit -m "test: add validation test files"
 
-# Undo the test commit if Option B was used
+# MANDATORY — undo the test commit immediately
 git reset --soft HEAD~1
 ```
 
 > [!NOTE]
-> Option A is sufficient to verify commitlint rules. Use Option B if you also want to confirm the Husky `commit-msg` hook fires correctly end-to-end.
+> Option A is sufficient to verify commitlint rules and is the **preferred** approach. Use Option B only if you also need to confirm the full Husky `commit-msg` hook pipeline end-to-end.
 
 Verify:
 
@@ -166,7 +173,7 @@ To specifically test lint-staged in isolation:
 git add src/app/test-violations.component.ts
 
 # Run lint-staged manually
-npx lint-staged --verbose
+[exec] lint-staged --verbose
 ```
 
 Verify that lint-staged runs the configured commands:
@@ -190,7 +197,7 @@ rm src/app/test-violations.css
 git reset --soft HEAD~1  # if a test commit was made
 
 # Verify we're clean again
-pnpm run lint && pnpm run lint:styles && pnpm run format
+[pkg-manager] run lint && [pkg-manager] run lint:styles && [pkg-manager] run format
 ```
 
 ---

@@ -40,12 +40,12 @@ module.exports = defineConfig([
 
 ## Companion Tool: Prettier Config
 
-Angular v21+ auto-generates a `"prettier"` key in `package.json`. **Do not create a `.prettierrc` file.**
+Modern Angular CLI may auto-generate a `"prettier"` key in `package.json`. **Do not create a `.prettierrc` file.**
 
 > [!IMPORTANT]
-> Angular 21 now auto-generates the `"prettier"` key **including** the `"parser": "angular"` override for `*.html` files. **Verify the auto-generated config already contains the `overrides` block before adding it manually.** Only add it if it is missing.
+> After running `ng new`, read `package.json`. If a `"prettier"` key already exists, verify it contains the Angular HTML parser override below. If the key does **NOT** exist, add it manually. **Do not blindly overwrite** an auto-generated config — only add what is missing.
 
-**Expected auto-generated config in `package.json`** (verify, do not blindly overwrite):
+**Expected config in `package.json`** (verify presence, add if missing):
 
 ```json
 {
@@ -63,7 +63,7 @@ Angular v21+ auto-generates a `"prettier"` key in `package.json`. **Do not creat
 ```
 
 > [!NOTE]
-> Angular CLI auto-generates the base Prettier config (e.g., `printWidth: 100`, `singleQuote: true`). **Do not override these values** unless your team has an explicit standard. Only add the `overrides` array with the Angular HTML parser if it is not already present.
+> If the Angular CLI auto-generated a base Prettier config (e.g., `printWidth: 100`, `singleQuote: true`), **do not override these values** unless your team has an explicit standard. Only add the `overrides` array with the Angular HTML parser if it is not already present.
 
 ---
 

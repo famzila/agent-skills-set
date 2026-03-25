@@ -7,9 +7,10 @@
 # ESLint config (eslint.config.js) is NOT generated — it requires
 # intelligent merging handled by the Agent Skill.
 #
-# Usage: ./configure_linters.sh [--style css|scss]
-#   --style  Project style format (default: css) 
-#   --package-manager  Package manager to use (default: pnpm)
+# Usage: ./configure_linters.sh [--style css|scss] [--package-manager pnpm|npm|yarn] [--rxjs auto|enabled|disabled]
+#   --style            Project style format (default: css)
+#   --package-manager  Package manager to use (auto-detected if not provided)
+#   --rxjs             RxJS linting mode: auto (check package.json), enabled, disabled (default: auto)
 # ============================================================================
 
 set -e
@@ -17,10 +18,12 @@ set -e
 # Parse arguments
 STYLE="css"
 PKG_MANAGER=""
+RXJS_MODE="auto"
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --style) STYLE="$2"; shift ;;
         --package-manager) PKG_MANAGER="$2"; shift ;;
+        --rxjs) RXJS_MODE="$2"; shift ;;
         *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
     shift
@@ -83,7 +86,6 @@ $PKG_MANAGER $INSTALL_CMD -D \
   eslint-plugin-import-x \
   eslint-import-resolver-typescript \
   @typescript-eslint/parser \
-  eslint-plugin-rxjs-x \
   eslint-plugin-unused-imports \
   prettier \
   eslint-config-prettier \
@@ -95,6 +97,27 @@ $PKG_MANAGER $INSTALL_CMD -D \
   @commitlint/config-conventional
 
 echo "✅ Base packages installed"
+
+# Determine if eslint-plugin-rxjs-x should be installed
+INSTALL_RXJS=false
+if [ "$RXJS_MODE" = "enabled" ]; then
+    INSTALL_RXJS=true
+elif [ "$RXJS_MODE" = "auto" ]; then
+    if grep -q '"rxjs"' package.json 2>/dev/null; then
+        INSTALL_RXJS=true
+        echo "ℹ️  RxJS detected in package.json — installing eslint-plugin-rxjs-x"
+    else
+        echo "ℹ️  RxJS not found in package.json — skipping eslint-plugin-rxjs-x"
+    fi
+fi
+
+if [ "$INSTALL_RXJS" = true ]; then
+    echo "📦 Installing RxJS linting plugin..."
+    $PKG_MANAGER $INSTALL_CMD -D eslint-plugin-rxjs-x
+    echo "✅ eslint-plugin-rxjs-x installed"
+else
+    echo "⏭️  Skipping eslint-plugin-rxjs-x (rxjs mode: $RXJS_MODE)"
+fi
 
 # ============================================================================
 # Step 2b: Install Stylelint (conditional on style format)
@@ -227,7 +250,7 @@ done
 
 if [ "$ALL_OK" = false ]; then
   echo ""
-  echo "❌ Some files are missing. Do NOT proceed — run git reset --hard and retry."
+  echo "❌ Some files are missing. Do NOT proceed — revert the files listed above and retry. Do NOT run git reset --hard."
   exit 1
 fi
 

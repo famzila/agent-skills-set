@@ -8,7 +8,7 @@ A collection of AI-driven development skills designed to elevate Angular "vibe c
 
 The foundation for every new project. It automates the creation of a production-ready setup for an Angular application with modern defaults.
 
-- **Angular 21+ Ready**: Defaults to Zoneless and SSR.
+- **Version-Adaptive**: Detects Angular CLI version and derives defaults dynamically (Zoneless, SSR, etc.).
 - **Standardized Scaffolding**: Automatically creates `core/`, `shared/`, and `features/` directory hierarchies.
 - **Production Tuning**: Intelligent merging of TSConfig path aliases and optimized production budgets.
 - **Quality First**: Automatically triggers the `angular-linters` skill for a day-one quality layer.
@@ -18,7 +18,7 @@ The foundation for every new project. It automates the creation of a production-
 A comprehensive quality stack that ensures code consistency and identifies bugs before they reach production.
 
 - **Integrated Tooling**: Setup for ESLint, Stylelint, Prettier, Husky, and Commitlint.
-- **Best Practices**: Pre-configured for Angular v21+, including RxJS, accessibility, and import organization plugins.
+- **Best Practices**: Pre-configured for modern Angular, including conditional RxJS, accessibility, and import organization plugins.
 - **Automated Hooks**: Git hooks for lint-staged and conventional commit message validation.
 - **Strict Standards**: Mandatory `defineConfig` wrappers and type-aware linting.
 
@@ -36,7 +36,7 @@ These skills are designed to be used by AI coding assistants. To use them, simpl
 
 ### Recommended Stack
 
-- **Framework**: Angular 21+ (Zoneless)
+- **Framework**: Modern Angular (latest CLI — version-adaptive)
 - **Package Manager**: pnpm
 - **Styling**: CSS or SCSS
 - **Standards**: Conventional Commits, ESLint Flat Config

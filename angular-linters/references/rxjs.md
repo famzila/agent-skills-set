@@ -5,7 +5,7 @@
 **Purpose:** Modern ESLint rules for RxJS — core correctness, memory leak prevention, and common pitfalls. Native ESLint v9 flat config support.
 
 > [!WARNING]
-> `eslint-plugin-rxjs-x@1.x` declares `eslint@^10.0.0` as a peer dependency, but Angular 21 ships with ESLint 9.x. This produces an `WARN unmet peer` during `pnpm install` — **it is safe to ignore.** The plugin works correctly with ESLint 9.
+> `eslint-plugin-rxjs-x@1.x` declares `eslint@^10.0.0` as a peer dependency, but current Angular CLI ships with ESLint 9.x. This produces a peer dependency warning during installation — **it is safe to ignore.** The plugin works correctly with ESLint 9.
 
 ---
 

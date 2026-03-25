@@ -119,6 +119,6 @@ To maintain a scalable and clean configuration, follow this mapping when adding 
 ## Verification Logic
 
 After adding any block from a reference file to this skeleton:
-1. Run `pnpm run lint` to verify syntax.
+1. Run `[pkg-manager] run lint` to verify syntax.
 2. If it fails, check the respective reference file and try to fix the issue.
 3. Proceed to the next plugin only after the current one is verified.

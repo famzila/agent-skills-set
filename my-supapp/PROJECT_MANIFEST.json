@@ -1,0 +1,16 @@
+{
+  "projectName": "my-supapp",
+  "angularMajorVersion": 21,
+  "packageManager": "npm",
+  "style": "css",
+  "ssr": true,
+  "zoneless": true,
+  "routing": true,
+  "rxjsLinting": "auto",
+  "budgetProfile": "balanced",
+  "skillVersions": {
+    "angular-setup-project": "1.0",
+    "angular-linters": "1.0",
+    "angular-third-party-integration": "1.0"
+  }
+}
