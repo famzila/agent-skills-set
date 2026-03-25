@@ -58,6 +58,7 @@
     "@angular/ssr": "^21.0.0",
     "@ng-icons/core": "^31.4.0",
     "@ng-icons/lucide": ">=32.0.0 <34.0.0",
+    "@ngrx/signals": "^21.1.0",
     "@spartan-ng/brain": "^0.0.1-alpha.656",
     "@tailwindcss/postcss": "^4.2.2",
     "express": "^5.1.0",
