@@ -15,8 +15,13 @@ Pre-install guard for known library prerequisites and dependency requirements. T
 |---------|--------------|-------------|-------|
 | @angular/material | @angular/cdk (same version) | 17 | CDK installed automatically by `ng add` |
 | @angular/cdk | -- | 17 | Often implicit; check if already present |
-| tailwindcss | -- | 17 | v4 uses CSS-first config; v3 uses JS config |
-| @spartan-ng/ui | @angular/cdk | 17 | Depends on CDK primitives |
+| tailwindcss | -- | 17 | v4 uses CSS-first config with `@tailwindcss/postcss`; v3 uses JS config |
+| @spartan-ng/ui | tailwindcss, @angular/cdk | 17 | CLI uses fuzzy-search prompt; `expect` automation requires typing app name then Enter |
+| prismjs | -- | -- | Pure JS library; add theme CSS to angular.json styles; use `afterNextRender` for SSR safety |
+| @ngrx/signals | -- | 17 | Standalone injectable; no module registration needed |
+| ngx-quill | quill ^2.0.0, @angular/forms | 19 | v29+ for Angular 21; `provideQuillConfig()` for standalone; syntax module requires prismjs |
+| html2canvas | -- | -- | Browser-only; use dynamic `import()` for SSR apps |
+| genkit | @angular/ssr (server routing) | 19 | Server-side only via Express routes; requires `GEMINI_API_KEY` env var |
 
 ## Extending This Matrix
 
