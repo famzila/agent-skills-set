@@ -180,3 +180,7 @@ Each generates brain + helm code + dependencies.
 - Use the CLI for component generation -- it handles dependencies automatically.
 - Configure Tailwind IntelliSense for `hlm`, `cva`, and `classes` functions.
 - Install `prettier-plugin-tailwindcss` with `tailwindFunctions: ["hlm", "cva", "classes"]`.
+
+## Required Manual Actions
+
+None.

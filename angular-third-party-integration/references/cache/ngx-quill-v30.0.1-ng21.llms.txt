@@ -169,3 +169,7 @@ editorControl = new FormControl('');
 - Add `debounceTime` for large documents to improve performance.
 - Use `onlyFormatEventData: true` with non-HTML formats for better performance.
 - For SSR, use `isPlatformBrowser` guard or `beforeRender` for lazy CSS loading.
+
+## Required Manual Actions
+
+None.

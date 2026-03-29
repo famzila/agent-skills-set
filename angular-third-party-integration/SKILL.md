@@ -77,6 +77,34 @@ For *each* library requested, generate an `llms.txt` file following this exact t
 6. **Common Usage Patterns** (Practical code examples, frequent use cases, integration patterns)
 7. **Error Handling** (Common errors, error handling patterns, debugging tips)
 8. **Best Practices** (Recommended patterns, performance considerations, common pitfalls to avoid)
+9. **Required Manual Actions** (External steps the user must perform that the agent cannot automate — see below)
+
+### Required Manual Actions Section (MANDATORY)
+
+Every llms.txt file **MUST** include a `## Required Manual Actions` section. If the library requires **no** manual actions, write exactly: `None.`
+
+Otherwise, list each action using this structure:
+
+```markdown
+## Required Manual Actions
+
+### [Action Title]
+- **When**: Before first run | Before deployment | One-time setup
+- **What**: Exact steps the user must perform
+- **Error if skipped**: What error or symptom the user will see
+- **Verification**: How to confirm the action was done correctly
+```
+
+**This section covers any external prerequisite the agent cannot automate**, including but not limited to:
+
+- **Credentials & secrets**: API keys, tokens, service account files (e.g., `export SOME_API_KEY=...`)
+- **External service setup**: Creating a project/app in an external dashboard, registering OAuth redirect URIs, configuring webhooks
+- **System-level dependencies**: Installing a binary the library depends on (e.g., `ffmpeg`, `wkhtmltopdf`, a database server)
+- **Network / infrastructure config**: CORS headers on a CDN, DNS records, reverse proxy rules
+- **Account or license requirements**: Accepting terms of service, activating a feature flag in a portal
+- **Platform-specific setup**: Mobile SDK configuration, browser extension installation
+
+If the documentation does not explicitly mention required manual actions, apply your own judgment: does the library talk to an external service? Does it require credentials? Does it depend on a system binary? If yes, document the action even if the docs omit it.
 
 ### Optional Sections (include if present in docs)
 - Authentication/Authorization
@@ -97,6 +125,7 @@ For *each* library requested, generate an `llms.txt` file following this exact t
 - Core API methods and UI component setup.
 - Practical usage examples (especially those using Angular Signals, standalone components, or SSR if applicable).
 - Error handling patterns.
+- **Required manual actions** — any setup step the user must perform outside the codebase (credentials, external service registration, system dependencies, infrastructure config). Even if the docs bury this in a "Getting Started" or "Deploy" section, extract it into the `Required Manual Actions` section.
 
 ### What to Exclude
 - Marketing copy and promotional language.
@@ -124,7 +153,22 @@ Save them strictly to the `references/cache/` directory.
 ## Installation & Setup
 [Content]
 
-[... remaining sections ...]
+[... sections 4–8 ...]
+
+## Required Manual Actions
+
+### Set API key for external service
+- **When**: Before first run
+- **What**: Obtain an API key from [provider dashboard URL] and set: `export PROVIDER_API_KEY=your-key`
+- **Error if skipped**: `TypeError: Cannot read properties of undefined` at runtime / HTTP 401
+- **Verification**: Run `echo $PROVIDER_API_KEY` — should print a non-empty value
+```
+
+If the library requires no manual actions, write:
+```
+## Required Manual Actions
+
+None.
 ```
 
 ### Presentation
@@ -142,8 +186,9 @@ Before entering the sequential execution loop:
    a. Check if it has a row in the matrix.
    b. If it has prerequisites not already installed in the project, prepend them to the install order.
    c. If the project's Angular version (from manifest or detection) is below the minimum, **WARN** the user and ask for confirmation.
+   d. If the `Manual Actions` column is `Yes`, flag it in the install order summary so the user knows upfront that manual steps will be required after installation.
 3. Reorder the library list by dependency (prerequisites before dependents — topological sort).
-4. Present the resolved install order to the user for confirmation.
+4. Present the resolved install order to the user for confirmation. For any library flagged with manual actions, include a note: *"[library] requires manual actions after installation (details will be presented in Step 7F)."*
 5. Only then enter the Step 7 loop.
 
 ---
@@ -294,7 +339,47 @@ You cannot trust that a successful build means the library works in the browser.
   4. Remove **ONLY** untracked files created during this integration step (do NOT use `git clean -fd` — it destroys cache files and unrelated work).
   5. Stop the loop and notify the user: *"The integration for [library] failed at runtime. I have rolled back the affected files. Let's debug."*
 
-**REPEAT this loop for every requested library.**
+### Step 7F: Surface Required Manual Actions (MANDATORY)
+
+After a successful commit in Step 7E, read the `## Required Manual Actions` section from the library's `llms.txt` cache file.
+
+- **If the section says `None.`** — skip this step silently.
+- **If the section lists one or more actions** — you **MUST**:
+
+1. **Present each action to the user immediately**, using this exact format:
+
+   > **Manual action required for [library-name]:**
+   >
+   > **[Action Title]**
+   > - **When**: [timing]
+   > - **What**: [exact steps]
+   > - **Error if skipped**: [symptom]
+   > - **Verification**: [how to confirm]
+   >
+   > Please acknowledge when done, or reply "skip" to defer.
+
+2. **Append the action to `POST_INSTALL_ACTIONS.md`** in the project root. If the file does not exist, create it with this header:
+
+   ```markdown
+   # Post-Install Actions
+
+   Required manual steps for third-party libraries integrated into this project.
+   Complete each item and check it off.
+   ```
+
+   Then append the action as a checklist item:
+
+   ```markdown
+   ## [Library Name]
+
+   - [ ] **[Action Title]** — [What the user must do]. Error if skipped: [symptom].
+   ```
+
+3. **Wait for user acknowledgment** before proceeding to the next library. The user may reply "done", "skip", or "later" — all are acceptable. Log the response.
+
+**Why this step exists:** Build and lint checks cannot catch missing external prerequisites (credentials, service registrations, system binaries). This step ensures the user is informed of actions that, if skipped, cause runtime failures.
+
+**REPEAT this loop (Steps 7A–7F) for every requested library.**
 
 ## 8. Context-Aware Generation (Edge Cases)
 
@@ -314,11 +399,16 @@ Whenever an integration involves sensitive credentials (API keys, tokens, secret
 ## 9. Final Verification
 
 After the sequential loop finishes and all libraries are verified and committed individually:
+
 1. Suggest the user run their start script one final time to view their fully loaded application state.
+2. **Consolidated Manual Actions Reminder**: If `POST_INSTALL_ACTIONS.md` exists in the project root, present the full checklist to the user as a final reminder:
+   > "Before your app is fully functional, please complete the outstanding manual actions listed in `POST_INSTALL_ACTIONS.md`."
+   
+   Print the unchecked items from the file so the user does not have to open it separately.
 
 ## 10. Post-Integration Reflection & Continuous Improvement
 
-Once all verified libraries are individual committed and individual loops end:
+Once all verified libraries are individually committed and individual loops end:
 
 1.  **Catalog Improvements**: Review any bugs, syntax crashes, or rigid template variables fixed on-the-fly during building or playground interactions.
 2.  **Formulate Recommendations**: Create 2-3 specific improvement targets targeting:

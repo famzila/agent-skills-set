@@ -201,3 +201,7 @@ export const GlobalStore = signalStore(
 - Use `withHooks.onInit` with `takeUntilDestroyed()` for RxJS subscriptions.
 - Compose features with `signalStoreFeature` for reusable patterns.
 - Prefer component-level providers unless global state is needed.
+
+## Required Manual Actions
+
+None.

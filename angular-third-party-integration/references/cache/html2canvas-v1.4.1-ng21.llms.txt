@@ -164,3 +164,7 @@ Use dynamic import to avoid SSR bundling issues.
 - Guard with `isPlatformBrowser` for SSR apps.
 - Use dynamic `import('html2canvas')` to avoid SSR bundling.
 - Use `ignoreElements` or `data-html2canvas-ignore` to exclude interactive controls.
+
+## Required Manual Actions
+
+None.

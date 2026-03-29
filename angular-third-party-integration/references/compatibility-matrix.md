@@ -11,17 +11,17 @@ Pre-install guard for known library prerequisites and dependency requirements. T
 
 ## Matrix
 
-| Library | Prerequisites | Min Angular | Notes |
-|---------|--------------|-------------|-------|
-| @angular/material | @angular/cdk (same version) | 17 | CDK installed automatically by `ng add` |
-| @angular/cdk | -- | 17 | Often implicit; check if already present |
-| tailwindcss | -- | 17 | v4 uses CSS-first config with `@tailwindcss/postcss`; v3 uses JS config |
-| @spartan-ng/ui | tailwindcss, @angular/cdk | 17 | CLI uses fuzzy-search prompt; `expect` automation requires typing app name then Enter |
-| prismjs | -- | -- | Pure JS library; add theme CSS to angular.json styles; use `afterNextRender` for SSR safety |
-| @ngrx/signals | -- | 17 | Standalone injectable; no module registration needed |
-| ngx-quill | quill ^2.0.0, @angular/forms | 19 | v29+ for Angular 21; `provideQuillConfig()` for standalone; syntax module requires prismjs |
-| html2canvas | -- | -- | Browser-only; use dynamic `import()` for SSR apps |
-| genkit | @angular/ssr (server routing) | 19 | Server-side only via Express routes; requires `GEMINI_API_KEY` env var |
+| Library | Prerequisites | Min Angular | Manual Actions | Notes |
+|---------|--------------|-------------|----------------|-------|
+| @angular/material | @angular/cdk (same version) | 17 | No | CDK installed automatically by `ng add` |
+| @angular/cdk | -- | 17 | No | Often implicit; check if already present |
+| tailwindcss | -- | 17 | No | v4 uses CSS-first config with `@tailwindcss/postcss`; v3 uses JS config |
+| @spartan-ng/ui | tailwindcss, @angular/cdk | 17 | No | CLI uses fuzzy-search prompt; `expect` automation requires typing app name then Enter |
+| prismjs | -- | -- | No | Pure JS library; add theme CSS to angular.json styles; use `afterNextRender` for SSR safety |
+| @ngrx/signals | -- | 17 | No | Standalone injectable; no module registration needed |
+| ngx-quill | quill ^2.0.0, @angular/forms | 19 | No | v29+ for Angular 21; `provideQuillConfig()` for standalone; syntax module requires prismjs |
+| html2canvas | -- | -- | No | Browser-only; use dynamic `import()` for SSR apps |
+| genkit | @angular/ssr (server routing) | 19 | Yes | Server-side only via Express routes; see llms.txt for required manual actions |
 
 ## Extending This Matrix
 
@@ -30,6 +30,7 @@ When the agent encounters a new prerequisite or version constraint during integr
 Keep entries factual:
 - **Prerequisites**: Only list if the library will not install or function without the dependency.
 - **Min Angular**: Only list if the library explicitly declares a minimum Angular peer dependency.
+- **Manual Actions**: `Yes` if the library's llms.txt contains required manual actions; `No` otherwise. This is a quick flag — the details live in the llms.txt cache file.
 - **Notes**: Brief, factual context. Do not editorialize.
 
 ## Pre-Install Guard Protocol

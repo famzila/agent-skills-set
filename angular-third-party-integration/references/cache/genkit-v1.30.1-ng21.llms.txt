@@ -156,3 +156,11 @@ export GEMINI_API_KEY=<your API key>
 - Use streaming for long-running AI tasks to improve UX.
 - For production, use environment-specific API key management (not hardcoded).
 - Test flows independently with `genkit start -- npx tsx --watch src/genkit/menuSuggestionFlow.ts`.
+
+## Required Manual Actions
+
+### Set Google AI API key
+- **When**: Before first run
+- **What**: Obtain a Gemini API key from https://aistudio.google.com/apikey and set the environment variable: `export GEMINI_API_KEY=<your-key>`
+- **Error if skipped**: `TypeError: Cannot read properties of undefined (reading 'object')` at runtime when a Genkit flow is invoked
+- **Verification**: Run `echo $GEMINI_API_KEY` — should print a non-empty value. Then start the app and invoke the flow endpoint (e.g., `curl -X POST http://localhost:4200/api/menuSuggestion -H 'Content-Type: application/json' -d '{"data":{"theme":"Italian"}}'`)

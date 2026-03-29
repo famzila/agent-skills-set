@@ -134,3 +134,7 @@ constructor() {
 - Use `prism-tomorrow.css` for dark themes.
 - For dynamic content, call `Prism.highlightElement(el)` after DOM updates.
 - Do NOT use `loadLanguages()` with bundlers -- import modules directly.
+
+## Required Manual Actions
+
+None.
